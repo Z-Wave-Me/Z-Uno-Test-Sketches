@@ -4,6 +4,8 @@
 
 #define DS18B20_BUS_PIN 11                  // Pin to which 1-Wire bus is connected
 #define MAX_SENSORS     32                  // Number of DS18B20 sensors supported (equals to maximum number of channels for Z-Uno) 
+#define DEFAULT_CHANNEL_LOGIC      1
+
 
 OneWire ow(DS18B20_BUS_PIN);                // Software 1-Wire BUS
 DS18B20Sensor ds18b20(&ow);                 // connect DS18B20 class to it
@@ -13,12 +15,14 @@ byte addresses[ADDR_SIZE * MAX_SENSORS];    // Here we store all the scanned add
 #define ADDR(i) (&addresses[i * ADDR_SIZE]) // Macro to simplify our life
 byte number_of_sensors;                     // Number of sensors found
 int temperature[MAX_SENSORS];               // Here we store temperatures
+byte  channel_logic      = DEFAULT_CHANNEL_LOGIC;
+
 
 ZUNO_DYNAMIC_CHANNELS(MAX_SENSORS);
 
 ZUNO_ENABLE(WITH_CC_SENSOR_MULTILEVEL);
 
-//ZUNO_SETUP_CFGPARAMETER_HANDLER(config_parameter_changed);  
+ZUNO_SETUP_CFGPARAMETER_HANDLER(config_parameter_changed);  
 
 void setup() {
   // Scanning sensors on the bus every time we starting a sketch
@@ -51,6 +55,12 @@ void loop(){
   }
   // We have to wait 30 seconds 
   // It's a requirement of Z-Wave protocol
+
+
+  byte i;
+  for(i=0;i<number_of_sensors;i++){
+    digitalWrite(temperature[i], g_channels_data[i].dwParam ? channel_logic : 1-channel_logic); 
+  }
   delay(30000);
 }
 
@@ -70,3 +80,8 @@ void zunoCallback(void) {
     callback_data.param.wParam = temperature[index];
 }
 */
+void config_parameter_changed(byte param, word value) {
+  if(param == 64) {
+    number_of_sensors = value;
+  }
+}
