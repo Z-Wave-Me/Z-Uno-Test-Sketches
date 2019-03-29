@@ -12,10 +12,12 @@ DS18B20Sensor ds18b20(&ow);                 // connect DS18B20 class to it
 byte addresses[ADDR_SIZE * MAX_SENSORS];    // Here we store all the scanned addresses
 #define ADDR(i) (&addresses[i * ADDR_SIZE]) // Macro to simplify our life
 byte number_of_sensors;                     // Number of sensors found
-int temperature[MAX_SENSORS];              // Here we store temperatures
-
+int temperature[MAX_SENSORS];               // Here we store temperatures
 
 ZUNO_DYNAMIC_CHANNELS(MAX_SENSORS);
+
+ZUNO_ENABLE(WITH_CC_SENSOR_MULTILEVEL);
+
 //ZUNO_SETUP_CFGPARAMETER_HANDLER(config_parameter_changed);  
 
 void setup() {
@@ -33,12 +35,7 @@ void setup() {
   for (byte i = 0; i < number_of_sensors; i++) {
     // Each channel is temperature sensor 
     // with 2 decimals precision (ex. 25.45C)
-    ZUNO_ADD_CHANNEL(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER, 
-                     ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, 
-                     SENSOR_MULTILEVEL_PROPERTIES_COMBINER(
-                            SENSOR_MULTILEVEL_SCALE_CELSIUS, 
-                            SENSOR_MULTILEVEL_SIZE_TWO_BYTES, 
-                            SENSOR_MULTILEVEL_PRECISION_TWO_DECIMALS));
+    ZUNO_ADD_CHANNEL(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE,SENSOR_MULTILEVEL_PROPERTIES_COMBINER(SENSOR_MULTILEVEL_SCALE_CELSIUS,SENSOR_MULTILEVEL_SIZE_TWO_BYTES,SENSOR_MULTILEVEL_PRECISION_TWO_DECIMALS));
   }
   // Commit configuration that we made...
   ZUNO_COMMIT_CONFIG();
@@ -58,6 +55,9 @@ void loop(){
 }
 
 // Universal handler for all the channels
+
+
+/*
 void zunoCallback(void) {
     // See callback_data variable 
     // We use word params for all 
@@ -69,4 +69,4 @@ void zunoCallback(void) {
     //index --;
     callback_data.param.wParam = temperature[index];
 }
-
+*/

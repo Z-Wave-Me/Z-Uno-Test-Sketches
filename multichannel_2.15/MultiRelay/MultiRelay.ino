@@ -123,56 +123,6 @@ void loop() {
   }
   delay(20);
 }
-/*void zunoCallback(void)
-{
-    // See callback_data variable 
-    // We use zero based index of the channel instead of 
-    // typical Getter/Setter index of Z-Uno. 
-    // See enum ZUNO_CHANNEL*_GETTER/ZUNO_CHANNEL*_SETTER in ZUNO_Definitions.h
-    byte index = (callback_data.type & 0x03F);
-    index >>= 1;
-    // Configuration parameter was changed?
-    if(callback_data.type & CONFIG_DATA_FLAG)
-    {
-        if(callback_data.type & SETTER_BIT)
-        {
-          switch(index)
-          {
-              case 0:
-              number_of_channels = callback_data.param.bParam;
-              if((number_of_channels > sizeof(pin_mapping)) || (number_of_channels == 0)){
-                number_of_channels = DEFAULT_NUMBER_OF_CHANNELS;
-                callback_data.param.wParam = number_of_channels;
-              }
-              break;
-              case 1:
-              channel_logic =  callback_data.param.bParam;
-              if((channel_logic != 0) && (channel_logic != 1))
-                channel_logic = DEFAULT_CHANNEL_LOGIC;
-              break;
-              default:
-              break;
-          }  
-          zunoSaveCFGParam(64+index,&(callback_data.param.wParam)); 
-        }
-        else
-        {
-          zunoLoadCFGParam(64+index,&(callback_data.param.wParam));  
-        }
-        return;
-    }
-    // It's a device channel event
-    if(callback_data.type & SETTER_BIT)
-    {
-       pin_states[index] =  (callback_data.param.bParam != 0);
-       digitalWrite(pin_mapping[index], channel_logic ? pin_states[index]: !(pin_states[index])); 
-    }
-    else
-    {
-       callback_data.param.bParam = pin_states[index];
-    }  
-}
-*/
 void config_parameter_changed(byte param, word value) {
   if(param == 64) {
     number_of_channels = value;
