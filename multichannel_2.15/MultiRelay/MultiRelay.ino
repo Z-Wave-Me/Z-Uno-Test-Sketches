@@ -9,7 +9,6 @@
     1 = normal logic
   This sketch uses dynamic approach of channel definition
   to decrease code space and demonstrate how to use it.
-  See setup() & zunoCallback() functions for details.
   (c) Z-Wave>ME 2017
  */
 #define NUM_CHANNELS   32 
@@ -71,9 +70,9 @@ byte pin_states[sizeof(pin_mapping)];
 void setup() {
   byte i;
   // Loading configuration data...
-  //zunoLoadCFGParam(64,&tmp); // Here we can use dword, but byte is cheaper
+
   number_of_channels = zunoLoadCFGParam(64);
-  //zunoLoadCFGParam(65,&tmp); // Here we can use dword, but byte is cheaper
+
   channel_logic = zunoLoadCFGParam(65);
  
   // Check if value of param is valid
@@ -85,8 +84,7 @@ void setup() {
   if((number_of_channels > sizeof(pin_mapping)) || (number_of_channels == 0))
   {
     tmp = number_of_channels = DEFAULT_NUMBER_OF_CHANNELS;
-    //zunoSaveCFGParam(64,&tmp); 
-    zunoSaveCFGParam(64,tmp);//--------------------------------------------------------------------------------------------------------???? 
+    zunoSaveCFGParam(64,tmp);
   }
   if((channel_logic != 0) && (channel_logic != 1))
   {
@@ -115,8 +113,6 @@ void setup() {
 }
 // the loop function runs over and over again forever
 void loop() {
-  // We don't need loop here...
-  // All logic is located in zunoCallback
   byte i;
   for(i=0;i<number_of_channels;i++){
     digitalWrite(pin_mapping[i], g_channels_data[i].bParam ? channel_logic : 1-channel_logic); 
