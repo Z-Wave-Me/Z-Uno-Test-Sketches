@@ -6,6 +6,8 @@
 #define MAX_SENSORS     32                  // Number of DS18B20 sensors supported (equals to maximum number of channels for Z-Uno) 
 #define DEFAULT_CHANNEL_LOGIC      1
 
+// comment the next line if you don't need debug output. 
+#define DBG_SERIAL Serial // Selects needed serial for debug output
 
 OneWire ow(DS18B20_BUS_PIN);                // Software 1-Wire BUS
 DS18B20Sensor ds18b20(&ow);                 // connect DS18B20 class to it
@@ -22,9 +24,11 @@ ZUNO_DYNAMIC_CHANNELS(MAX_SENSORS);
 
 ZUNO_ENABLE(WITH_CC_SENSOR_MULTILEVEL);
 
-ZUNO_SETUP_CFGPARAMETER_HANDLER(config_parameter_changed);  
-
 void setup() {
+   #ifdef DBG_SERIAL
+   DBG_SERIAL.begin(115200);
+   DBG_SERIAL.print("Meter Init");
+   #endif
   // Scanning sensors on the bus every time we starting a sketch
   number_of_sensors = ds18b20.findAllSensors(addresses);
 
@@ -55,33 +59,13 @@ void loop(){
   }
   // We have to wait 30 seconds 
   // It's a requirement of Z-Wave protocol
-
-
+#ifdef DBG_SERIAL
+    DBG_SERIAL.print("number_of_sensors=");
+    DBG_SERIAL.println(number_of_sensors);  
+#endif
   byte i;
   for(i=0;i<number_of_sensors;i++){
-    digitalWrite(temperature[i], g_channels_data[i].dwParam ? channel_logic : 1-channel_logic); 
+    g_channels_data[i].wParam =  ds18b20.getTempC100(ADDR(i));
   }
   delay(30000);
-}
-
-// Universal handler for all the channels
-
-
-/*
-void zunoCallback(void) {
-    // See callback_data variable 
-    // We use word params for all 
-    // We use zero based index of the channel instead of typical 
-    // Getter/Setter index of Z-Uno. 
-    // See enum ZUNO_CHANNEL*_GETTER/ZUNO_CHANNEL*_SETTER in ZUNO_Definitions.h 
-    byte index = callback_data.type;
-    index >>= 1;
-    //index --;
-    callback_data.param.wParam = temperature[index];
-}
-*/
-void config_parameter_changed(byte param, word value) {
-  if(param == 64) {
-    number_of_sensors = value;
-  }
 }
