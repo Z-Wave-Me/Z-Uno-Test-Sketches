@@ -247,6 +247,7 @@ void loop() {
 }
 
 // Universal handler for all the channels
+/* 
 void zunoCallback(void) {
   // See callback_data variable 
   // We use word params for all 
@@ -266,4 +267,4 @@ void zunoCallback(void) {
     callback_data.param.dwParam = channel_value[index];
   }
 }
-
+*/
