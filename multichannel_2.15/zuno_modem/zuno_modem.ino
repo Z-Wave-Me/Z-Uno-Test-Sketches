@@ -7,10 +7,11 @@
 // Serial for USB
 // Serial0 for UART0
 // Serial1 fot UART1 
-#define MY_SERIAL Serial
+#define MY_SERIAL Serial0
 
 #define MAX_CHANNELS 32 // The maximum number of channels supported by Z-Uno 
 
+ZUNO_ENABLE(WITH_CC_SWITCH_MULTILEVEL WITH_CC_METER WITH_CC_SENSOR_BINARY WITH_CC_SWITCH_COLOR WITH_CC_SENSOR_MULTILEVEL WITH_CC_DOORLOCK WITH_CC_SWITCH_BINARY WITH_CC_NOTIFICATION WITH_CC_THERMOSTAT);
 // Commands
 enum {
   AT_CMD_CLEAN_CHANNELS,
@@ -22,7 +23,8 @@ enum {
   AT_CMD_CHANNEL_SET,
   AT_CMD_CHANNEL_GET,
   AT_CMD_SEND_REPORT,
-  AT_CMD_SEND_ASSOC
+  AT_CMD_SEND_ASSOC,
+  AT_SET_ZWAVE_CHANNEL
 };
 // Parser state machine
 enum {
@@ -42,7 +44,7 @@ char tmp_buff[32];                    // temp buffer
 byte tmp_len = 0;                     // temp buffer length
 long int channel_value[MAX_CHANNELS]; // channel values to report
 dword channel_to_update = 0;          // list of channels to update
-dword g_mask;                         //mask for zunoCallback
+dword g_mask;                         // mask for zunoCallback
 
 void setup() {
   MY_SERIAL.begin(115200);
@@ -73,7 +75,10 @@ byte parseCmd() {
     cmd = AT_CMD_SEND_ASSOC;
   } else if (strcmp(tmp_buff, "AT_SEND_REPORT") == 0) {
     cmd = AT_CMD_SEND_REPORT;
-  } else {
+  } else if (strcmp(tmp_buff, "AT_SET_ZWAVE_CHANNEL") == 0) {
+    cmd = AT_SET_ZWAVE_CHANNEL;
+  } 
+  else {
     return FALSE;
   }
 
@@ -138,6 +143,10 @@ byte processCmd() {
     case AT_CMD_SEND_ASSOC:
       zunoSendAssociationCommand(byte(param[0]), byte(param[1]), byte(param[2]), byte(param[3]));
       response("SEND_ASSOCIATION_OK");
+      break;
+    case AT_SET_ZWAVE_CHANNEL:
+      ZUNO_SET_ZWCHANNEL(byte(param[0]));
+      response("AT_SET_ZWAVE_CHANNEL_OK");
       break;  
     default:
       break;
@@ -245,6 +254,9 @@ void loop() {
   makeUnsolicitedReports();
   delay(100);
 }
+
+
+
 
 // Universal handler for all the channels
 /* 
