@@ -7,12 +7,15 @@
 // Serial for USB
 // Serial0 for UART0
 // Serial1 fot UART1 
-#define MY_SERIAL Serial0
+#define MY_SERIAL Serial1
 
 #define MAX_CHANNELS 32 // The maximum number of channels supported by Z-Uno 
 
 ZUNO_ENABLE(WITH_CC_SWITCH_MULTILEVEL WITH_CC_METER WITH_CC_SENSOR_BINARY WITH_CC_SWITCH_COLOR WITH_CC_SENSOR_MULTILEVEL WITH_CC_DOORLOCK WITH_CC_SWITCH_BINARY WITH_CC_NOTIFICATION WITH_CC_THERMOSTAT);
 // Commands
+
+ZUNO_DYNAMIC_CHANNELS(MAX_CHANNELS);
+
 enum {
   AT_CMD_CLEAN_CHANNELS,
   AT_CMD_ADD_CHANNEL,
@@ -42,10 +45,10 @@ byte param_count = 0;                 // number of bytes in parameters
 byte resp_count = 0;                  // number of bytes in report
 char tmp_buff[32];                    // temp buffer
 byte tmp_len = 0;                     // temp buffer length
-long int channel_value[MAX_CHANNELS]; // channel values to report
 dword channel_to_update = 0;          // list of channels to update
 dword g_mask;                         // mask for zunoCallback
 
+// g_channels_data[CH_NUMBER].dwParam
 void setup() {
   MY_SERIAL.begin(115200);
 }
@@ -128,11 +131,13 @@ byte processCmd() {
       response("COMMIT_CONFIG");
       break;
     case AT_CMD_CHANNEL_SET:
-      channel_value[byte(param[0]) - 1] = param[1];
+      g_channels_data[byte(param[0]) - 1].dwParam = param[1];
+      //channel_value[byte(param[0]) - 1] = param[1];
       response("CHANNEL_SET_OK");
       break;
     case AT_CMD_CHANNEL_GET:
-      param[1] = channel_value[byte(param[0]) - 1];
+      param[1] = g_channels_data[byte(param[0]) - 1].dwParam;
+      //param[1] = channel_value[byte(param[0]) - 1];
       resp_count = 2;
       response("CHANNEL_VALUE");
       break;
@@ -238,7 +243,7 @@ void makeUnsolicitedReports() {
     if (channel_to_update & g_mask) {
       resp_count = 2;
       param[0] = i + 1;
-      param[1] = channel_value[i];
+      param[1] = g_channels_data[i].dwParam;
       response("CHANNEL_CHANGED");
     }
 
@@ -256,27 +261,3 @@ void loop() {
 }
 
 
-
-
-// Universal handler for all the channels
-/* 
-void zunoCallback(void) {
-  // See callback_data variable 
-  // We use word params for all 
-  // We use zero based index of the channel instead of typical Getter/Setter index of Z-Uno. 
-  // See enum ZUNO_CHANNEL*_GETTER/ZUNO_CHANNEL*_SETTER in ZUNO_Definitions.h
-
-  byte index = callback_data.type;
-
-  index >>= 1;
-  index &= 0x1F;
-  
-  if (callback_data.type & SETTER_BIT) {
-    channel_value[index] = callback_data.param.bParam;
-    // Data for unsolicited reports
-    channel_to_update |= 1 << (index);
-  } else {
-    callback_data.param.dwParam = channel_value[index];
-  }
-}
-*/
